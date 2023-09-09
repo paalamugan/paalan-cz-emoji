@@ -5,8 +5,8 @@ const isDev = env === 'development';
 
 export default defineConfig((options) => ({
   entry: ['src/index.ts'],
-  treeshake: true,
-  target: 'es6',
+  treeshake: false,
+  target: 'es2019',
   sourcemap: isDev,
   minify: !options.watch,
   clean: true,
