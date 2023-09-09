@@ -18,7 +18,9 @@
     "commit": "cz"
   },
   "dependencies": {
+    "chalk": "^5.3.0",
     "cli-truncate": "^3.1.0",
+    "commitizen": "^4.3.0",
     "find-up": "^6.3.0",
     "fuse.js": "^6.6.2",
     "inquirer-autocomplete-prompt": "^3.0.0",

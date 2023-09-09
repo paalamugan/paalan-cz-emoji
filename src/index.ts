@@ -9,6 +9,7 @@ interface Config {
   emojiSymbol: boolean;
   skipQuestions: string[];
   subjectMaxLength: number;
+  disableSubjectLowerCase: boolean;
   conventional: boolean;
   scopes?: { name: string; value: string }[];
   format: string;
@@ -34,7 +35,10 @@ interface Answer {
 interface Question {
   type: string;
   name: string;
-  message: string;
+  message: string | ((answers: Answer) => string);
+  validate?: (value: string, answers: Answer) => boolean | string;
+  transformer?: (value: string, answers: Answer) => string;
+  filter?: (value: string) => string;
   maxLength?: number;
   choices?: { name: string; value: string }[];
   when?: boolean;
@@ -76,6 +80,7 @@ const getConfig = async () => {
     skipQuestions: [''],
     subjectMaxLength: 75,
     conventional: true,
+    disableSubjectLowerCase: false,
   };
 
   const loadedConfig =
@@ -86,10 +91,10 @@ const getConfig = async () => {
 
   const config: Config = {
     ...defaultConfig,
-    ...loadedConfig,
     ...{
       format: loadedConfig.conventional ? conventionalFormat : defaultFormat,
     },
+    ...loadedConfig,
   };
 
   return config;
@@ -120,9 +125,33 @@ const formatIssues = (issues: string) => {
     : '';
 };
 
-const createQuestions = (config: Config) => {
-  const choices = getEmojiChoices(config);
+const headerLength = (answers: Answer) => {
+  return (
+    answers.type.name.length +
+    2 +
+    (answers.scope ? answers.scope.length + 2 : 0)
+  );
+};
 
+const maxSummaryLength = (options: Config, answers: Answer): number => {
+  return options.subjectMaxLength - headerLength(answers);
+};
+
+const filterSubject = (subject: string, disableSubjectLowerCase: boolean) => {
+  subject = subject.trim();
+  if (!disableSubjectLowerCase) {
+    subject =
+      subject.charAt(0).toLowerCase() + subject.slice(1, subject.length);
+  }
+  while (subject.endsWith('.')) {
+    subject = subject.slice(0, subject.length - 1);
+  }
+  return subject;
+};
+
+const createQuestions = async (config: Config) => {
+  const choices = getEmojiChoices(config);
+  const chalk = (await import('chalk')).default;
   const options = {
     shouldSort: true,
     threshold: 0.4,
@@ -164,11 +193,43 @@ const createQuestions = (config: Config) => {
     {
       type: 'maxlength-input',
       name: 'subject',
-      message:
-        config.questions && config.questions.subject
-          ? config.questions.subject
-          : 'Write a short description:',
+      message(answers: Answer) {
+        return (
+          'Write a short, imperative tense description of the change (max ' +
+          maxSummaryLength(config, answers) +
+          ' chars):\n'
+        );
+      },
       maxLength: config.subjectMaxLength,
+      validate(subject: string, answers: Answer) {
+        const filteredSubject = filterSubject(
+          subject,
+          config.disableSubjectLowerCase || false
+        );
+        return filteredSubject.length === 0
+          ? 'subject is required'
+          : filteredSubject.length <= maxSummaryLength(config, answers)
+          ? true
+          : 'Subject length must be less than or equal to ' +
+            maxSummaryLength(config, answers) +
+            ' characters. Current length is ' +
+            filteredSubject.length +
+            ' characters.';
+      },
+      transformer(subject: string, answers: Answer) {
+        const filteredSubject = filterSubject(
+          subject,
+          config.disableSubjectLowerCase
+        );
+        const color =
+          filteredSubject.length <= maxSummaryLength(config, answers)
+            ? chalk.green
+            : chalk.red;
+        return color('(' + filteredSubject.length + ') ' + subject);
+      },
+      filter(subject: string) {
+        return filterSubject(subject, config.disableSubjectLowerCase);
+      },
     },
     {
       type: 'input',
@@ -207,7 +268,6 @@ const formatCommitMessage = async (answer: Answer, config: Config) => {
 
   const emoji = answer.type;
   const type = config.types.find((type) => type.name === emoji.name)?.name;
-  console.log('type', type);
   const scope = answer.scope ? '(' + answer.scope.trim() + ')' : '';
   const subject = answer.subject.trim();
 
@@ -221,17 +281,6 @@ const formatCommitMessage = async (answer: Answer, config: Config) => {
     // white spaces in the final message.
     .replace(/\s+/g, ' ');
 
-  if (type && config.conventional) {
-    commitMessage.replace(/{type}/g, type);
-    console.log(
-      '🚀 ~ file: index.ts:225 ~ formatCommitMessage ~ commitMessage:',
-      commitMessage
-    );
-  }
-  console.log(
-    '🚀 ~ file: index.ts:225 ~ formatCommitMessage ~ commitMessage:',
-    commitMessage
-  );
   const truncate = (await import('cli-truncate')).default;
   const wrap = (await import('wrap-ansi')).default;
   const head = truncate(commitMessage, columns);
@@ -263,7 +312,7 @@ const promptCommitMessage = async (cz: Commitizen) => {
     );
 
     const config = await getConfig();
-    const questions = createQuestions(config);
+    const questions = await createQuestions(config);
     const answers = await cz.prompt(questions);
 
     const message = await formatCommitMessage(answers, config);
