@@ -1,0 +1,91 @@
+{
+  "name": "@paalan/cz-emoji",
+  "version": "0.0.1",
+  "description": "A commitizen adapter for the commitizen cli that uses emojis for commiting. 🎉",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon",
+    "watch": "tsup --watch",
+    "build": "tsup",
+    "prepare": "husky install && pnpm build",
+    "size": "size-limit",
+    "analyze": "size-limit --why",
+    "lint": "eslint \"src/**/*.{js,ts}\"",
+    "lint:fix": "eslint --fix \"src/**/*.{js,ts}\"",
+    "format": "prettier --write \"src/**/*.{js,ts,md}\" --config ./.prettierrc",
+    "type-check": "tsc --noEmit",
+    "release": "standard-version"
+  },
+  "dependencies": {
+    "cli-truncate": "^3.1.0",
+    "find-up": "^6.3.0",
+    "fuse.js": "^6.6.2",
+    "inquirer-autocomplete-prompt": "^3.0.0",
+    "inquirer-maxlength-input-prompt": "^1.0.2",
+    "pad": "^3.2.0",
+    "wrap-ansi": "^8.1.0"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^10.0.4",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.0.5",
+    "@semantic-release/npm": "^10.0.5",
+    "@semantic-release/release-notes-generator": "^11.0.7",
+    "@types/node": "^20.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
+    "concurrently": "^8.2.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.49.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.1",
+    "nodemon": "^3.0.1",
+    "prettier": "^2.8.8",
+    "semantic-release": "^21.1.1",
+    "standard-version": "^9.5.0",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.6.2",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "author": "paalamugan",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paalamugan/paalan-cz-emoji.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=12"
+  },
+  "size-limit": [
+    {
+      "path": "dist/cz-emoji.cjs.production.min.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/cz-emoji.esm.js",
+      "limit": "10 KB"
+    }
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "tag": "latest"
+  }
+}
