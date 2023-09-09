@@ -5,12 +5,13 @@ const isDev = env === 'development';
 
 export default defineConfig((options) => ({
   entry: ['src/index.ts'],
-  treeshake: false,
-  target: 'es2019',
+  treeshake: true,
+  target: 'es5',
   sourcemap: isDev,
+  noExternal: ['find-up', 'cli-truncate', 'wrap-ansi'],
   minify: !options.watch,
   clean: true,
   dts: true,
   splitting: false,
-  format: ['cjs', 'esm'],
+  format: 'cjs',
 }));

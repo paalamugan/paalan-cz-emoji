@@ -2,10 +2,9 @@
   "name": "@paalan/cz-emoji",
   "version": "0.0.3",
   "description": "A commitizen adapter for the commitizen cli that uses emojis for commiting. 🎉",
-  "main": "dist/index.cjs",
+  "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "type": "module",
   "scripts": {
     "dev": "nodemon",
     "watch": "tsup --watch",
@@ -15,7 +14,8 @@
     "lint:fix": "eslint --fix \"src/**/*.{js,ts}\"",
     "format": "prettier --write \"src/**/*.{js,ts,md}\" --config ./.prettierrc",
     "type-check": "tsc --noEmit",
-    "release": "pnpm build && release-it"
+    "release": "pnpm build && release-it",
+    "commit": "cz"
   },
   "dependencies": {
     "cli-truncate": "^3.1.0",
@@ -33,6 +33,7 @@
     "@semantic-release/github": "^9.0.5",
     "@semantic-release/npm": "^10.0.5",
     "@semantic-release/release-notes-generator": "^11.0.7",
+    "@swc/core": "^1.3.83",
     "@types/node": "^20.6.0",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
@@ -56,7 +57,7 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs"
+      "require": "./dist/index.js"
     }
   },
   "files": [
