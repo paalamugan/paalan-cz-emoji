@@ -207,6 +207,7 @@ const formatCommitMessage = async (answer: Answer, config: Config) => {
 
   const emoji = answer.type;
   const type = config.types.find((type) => type.name === emoji.name)?.name;
+  console.log('type', type);
   const scope = answer.scope ? '(' + answer.scope.trim() + ')' : '';
   const subject = answer.subject.trim();
 
@@ -222,7 +223,10 @@ const formatCommitMessage = async (answer: Answer, config: Config) => {
   if (type) {
     commitMessage.replace(/{type}/g, type);
   }
-
+  console.log(
+    '🚀 ~ file: index.ts:225 ~ formatCommitMessage ~ commitMessage:',
+    commitMessage
+  );
   const truncate = (await import('cli-truncate')).default;
   const wrap = (await import('wrap-ansi')).default;
   const head = truncate(commitMessage, columns);
