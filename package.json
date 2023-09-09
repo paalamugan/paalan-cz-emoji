@@ -1,6 +1,6 @@
 {
   "name": "@paalan/cz-emoji",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "A commitizen adapter for the commitizen cli that uses emojis for commiting. 🎉",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -93,6 +93,6 @@
   },
   "homepage": "https://github.com/paalamugan/paalan-cz-emoji#readme",
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "access": "public"
   }
 }
