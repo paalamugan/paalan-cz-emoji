@@ -1,3 +1,4 @@
+import { conventionalCommitParserOpts } from './commitlint-parser-options';
 import fs from 'fs/promises';
 import pad from 'pad';
 import path from 'path';
@@ -30,18 +31,20 @@ interface Answer {
   body: string;
   breakingBody: string;
   issues: string;
+  isBreaking: boolean;
 }
 
 interface Question {
   type: string;
   name: string;
   message: string | ((answers: Answer) => string);
+  default?: string | number | boolean | ((answers: Answer) => string);
   validate?: (value: string, answers: Answer) => boolean | string;
   transformer?: (value: string, answers: Answer) => string;
   filter?: (value: string) => string;
   maxLength?: number;
   choices?: { name: string; value: string }[];
-  when?: boolean;
+  when?: boolean | ((answers: Answer) => boolean);
   source?: (name: string, query: string) => Promise<unknown>;
 }
 
@@ -191,7 +194,7 @@ const createQuestions = async (config: Config) => {
       when: !config.skipQuestions.includes('scope'),
     },
     {
-      type: 'maxlength-input',
+      type: 'input',
       name: 'subject',
       message(answers: Answer) {
         return (
@@ -200,7 +203,6 @@ const createQuestions = async (config: Config) => {
           ' chars):\n'
         );
       },
-      maxLength: config.subjectMaxLength,
       validate(subject: string, answers: Answer) {
         const filteredSubject = filterSubject(
           subject,
@@ -237,8 +239,14 @@ const createQuestions = async (config: Config) => {
       message:
         config.questions && config.questions.body
           ? config.questions.body
-          : 'Provide a longer description:',
+          : 'Provide a longer description: (press enter to skip)\n',
       when: !config.skipQuestions.includes('body'),
+    },
+    {
+      type: 'confirm',
+      name: 'isBreaking',
+      message: 'Are there any breaking changes?',
+      default: false,
     },
     {
       type: 'input',
@@ -247,7 +255,19 @@ const createQuestions = async (config: Config) => {
         config.questions && config.questions.breaking
           ? config.questions.breaking
           : 'A BREAKING CHANGE commit requires a body. Please enter a longer description of the commit itself:\n',
-      when: !config.skipQuestions.includes('breaking'),
+      when(answers: Answer) {
+        return (
+          (answers.isBreaking && !answers.body) ||
+          !config.skipQuestions.includes('breaking')
+        );
+      },
+      validate(breakingBody: string, answers: Answer) {
+        return (
+          breakingBody.trim().length > 0 ||
+          !answers.isBreaking ||
+          'Body is required for BREAKING CHANGE'
+        );
+      },
     },
     {
       type: 'input',
@@ -329,3 +349,5 @@ export default {
     promptCommitMessage(cz).then(commit);
   },
 };
+
+export { types, conventionalCommitParserOpts };

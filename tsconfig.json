@@ -43,5 +43,6 @@
     "resolveJsonModule": true, // allow importing JSON files
     "types": ["node", "./@types/common.d.ts"]
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }
