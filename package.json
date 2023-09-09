@@ -1,6 +1,6 @@
 {
   "name": "@paalan/cz-emoji",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A commitizen adapter for the commitizen cli that uses emojis for commiting. 🎉",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
