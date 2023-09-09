@@ -220,8 +220,12 @@ const formatCommitMessage = async (answer: Answer, config: Config) => {
     // white spaces in the final message.
     .replace(/\s+/g, ' ');
 
-  if (type) {
+  if (type && config.conventional) {
     commitMessage.replace(/{type}/g, type);
+    console.log(
+      '🚀 ~ file: index.ts:225 ~ formatCommitMessage ~ commitMessage:',
+      commitMessage
+    );
   }
   console.log(
     '🚀 ~ file: index.ts:225 ~ formatCommitMessage ~ commitMessage:',
