@@ -13,4 +13,5 @@ export default defineConfig(() => ({
   dts: true,
   splitting: false,
   format: 'cjs',
+  output: { exports: 'named' },
 }));
