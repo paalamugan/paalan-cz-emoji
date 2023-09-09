@@ -30,10 +30,16 @@ export default [
     name: 'quickfix',
   },
   {
+    emoji: '🩹',
+    code: ':adhesive_bandage:',
+    description: "Other changes that don't modify src or test files",
+    name: 'chore',
+  },
+  {
     emoji: '✨',
     code: ':sparkles:',
     description: 'Introducing new features.',
-    name: 'feature',
+    name: 'feat',
   },
   {
     emoji: '📝',

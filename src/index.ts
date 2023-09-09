@@ -1,7 +1,4 @@
-import { findUp } from 'find-up';
 import fs from 'fs/promises';
-import truncate from 'cli-truncate';
-import wrap from 'wrap-ansi';
 import pad from 'pad';
 import path from 'path';
 import fuse from 'fuse.js';
@@ -26,7 +23,7 @@ interface Config {
 }
 
 interface Answer {
-  type: { emoji: string };
+  type: { emoji: string; name: string };
   scope: string;
   subject: string;
   body: string;
@@ -64,6 +61,7 @@ const loadConfig = async (filename: string | undefined) => {
 };
 
 async function loadConfigUpwards(filename: string) {
+  const findUp = (await import('find-up')).findUp;
   const filename_1 = await findUp(filename);
   return loadConfig(filename_1);
 }
@@ -74,7 +72,7 @@ const getConfig = async () => {
 
   const defaultConfig = {
     types,
-    emojiSymbol: false,
+    emojiSymbol: true,
     skipQuestions: [''],
     subjectMaxLength: 75,
     conventional: true,
@@ -125,14 +123,18 @@ const formatIssues = (issues: string) => {
 const createQuestions = (config: Config) => {
   const choices = getEmojiChoices(config);
 
-  const fuzzy = new fuse(choices, {
+  const options = {
     shouldSort: true,
     threshold: 0.4,
     location: 0,
     distance: 100,
     minMatchCharLength: 1,
     keys: ['name', 'code'],
-  });
+  };
+  // Create the Fuse index
+  const fuseIndex = fuse.createIndex(options.keys, choices);
+
+  const fuzzy = new fuse(choices, options, fuseIndex);
 
   const questions: Question[] = [
     {
@@ -141,8 +143,12 @@ const createQuestions = (config: Config) => {
       message: config?.questions?.type
         ? config.questions.type
         : "Select the type of change you're committing:",
-      source: (_name, query) =>
-        Promise.resolve(query ? fuzzy.search(query) : choices),
+      source: (_name, query) => {
+        const filteredChoices = query
+          ? fuzzy.search(query).map((result) => result.item)
+          : choices;
+        return Promise.resolve(filteredChoices);
+      },
     },
     {
       type: config.scopes ? 'list' : 'input',
@@ -196,11 +202,11 @@ const createQuestions = (config: Config) => {
   return questions;
 };
 
-const formatCommitMessage = (answer: Answer, config: Config) => {
+const formatCommitMessage = async (answer: Answer, config: Config) => {
   const { columns } = process.stdout;
 
   const emoji = answer.type;
-  const type = config.types.find((type) => type.emoji === emoji.emoji)?.name;
+  const type = config.types.find((type) => type.name === emoji.name)?.name;
   const scope = answer.scope ? '(' + answer.scope.trim() + ')' : '';
   const subject = answer.subject.trim();
 
@@ -217,6 +223,8 @@ const formatCommitMessage = (answer: Answer, config: Config) => {
     commitMessage.replace(/{type}/g, type);
   }
 
+  const truncate = (await import('cli-truncate')).default;
+  const wrap = (await import('wrap-ansi')).default;
   const head = truncate(commitMessage, columns);
   const body = wrap(answer.body || '', columns);
   const breaking =
@@ -229,20 +237,33 @@ const formatCommitMessage = (answer: Answer, config: Config) => {
 };
 
 const promptCommitMessage = async (cz: Commitizen) => {
-  const [inquiredAutocompletePrompt, inquirerMaxLengthInputPrompt] =
-    await Promise.all([
-      import('inquirer-autocomplete-prompt'),
-      import('inquirer-maxlength-input-prompt'),
-    ]);
-  cz.prompt.registerPrompt('autocomplete', inquiredAutocompletePrompt);
-  cz.prompt.registerPrompt('maxlength-input', inquirerMaxLengthInputPrompt);
+  try {
+    const [inquiredAutocompletePrompt, inquirerMaxLengthInputPrompt] =
+      await Promise.all([
+        import('inquirer-autocomplete-prompt'),
+        import('inquirer-maxlength-input-prompt'),
+      ]);
 
-  const config = await getConfig();
-  const questions = createQuestions(config);
-  const answers = await cz.prompt(questions);
-  const message = formatCommitMessage(answers, config);
+    cz.prompt.registerPrompt(
+      'autocomplete',
+      inquiredAutocompletePrompt.default
+    );
+    cz.prompt.registerPrompt(
+      'maxlength-input',
+      inquirerMaxLengthInputPrompt.default
+    );
 
-  return message;
+    const config = await getConfig();
+    const questions = createQuestions(config);
+    const answers = await cz.prompt(questions);
+
+    const message = await formatCommitMessage(answers, config);
+
+    return message;
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 };
 
 export default {
