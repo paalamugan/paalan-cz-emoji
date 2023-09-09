@@ -213,6 +213,7 @@ const formatCommitMessage = async (answer: Answer, config: Config) => {
 
   const commitMessage = config.format
     .replace(/{emoji}/g, emoji.emoji)
+    .replace(/{type}/g, type || '')
     .replace(/{scope}/g, scope)
     .replace(/{subject}/g, subject)
     // Only allow at most one whitespace.
