@@ -4,7 +4,7 @@ const env = process.env.NODE_ENV;
 const isDev = env === 'development';
 
 export default defineConfig(() => ({
-  entry: ['src/index.ts'],
+  entry: ['src'],
   treeshake: true,
   target: 'es5',
   sourcemap: isDev,
@@ -13,5 +13,4 @@ export default defineConfig(() => ({
   dts: true,
   splitting: false,
   format: 'cjs',
-  output: { exports: 'named' },
 }));

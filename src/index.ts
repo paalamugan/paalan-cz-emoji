@@ -1,4 +1,3 @@
-import { conventionalCommitParserOpts } from './commitlint-parser-options';
 import fs from 'fs/promises';
 import pad from 'pad';
 import path from 'path';
@@ -349,5 +348,3 @@ export default {
     promptCommitMessage(cz).then(commit);
   },
 };
-
-export { types, conventionalCommitParserOpts };

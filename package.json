@@ -61,6 +61,16 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts",
       "require": "./dist/index.js"
+    },
+    "./types": {
+      "import": "./dist/constants/types.js",
+      "types": "./dist/constants/types.d.ts",
+      "require": "./dist/constants/types.js"
+    },
+    "./parserOptions": {
+      "import": "./dist/commitlint-parser-options.js",
+      "types": "./dist/commitlint-parser-options.d.ts",
+      "require": "./dist/commitlint-parser-options.js"
     }
   },
   "files": [
